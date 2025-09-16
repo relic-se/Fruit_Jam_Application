@@ -65,7 +65,7 @@ while True:
 
         timeouts = 0
         previous_pressed_btns = []
-        while timeouts < 180:  # 3 seconds
+        while timeouts < 9999:
             pressed_btns = mouse.update()
             if pressed_btns is None:
                 timeouts += 1
@@ -74,6 +74,6 @@ while True:
                 if "left" in pressed_btns and (previous_pressed_btns is None or "left" not in previous_pressed_btns):
                     pass
             previous_pressed_btns = pressed_btns
-            time.sleep(1/60)
+            time.sleep(1/30)
         root_group.remove(mouse.tilegrid)
     time.sleep(1)
