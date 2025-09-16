@@ -28,7 +28,10 @@ except ImportError:
 
 # setup display
 displayio.release_displays()
-adafruit_fruitjam.peripherals.request_display_config()
+try:
+    adafruit_fruitjam.peripherals.request_display_config()  # user display configuration
+except ValueError:  # invalid user config or no user config provided
+    adafruit_fruitjam.peripherals.request_display_config(720, 400)  # default display size
 display = supervisor.runtime.display
 
 # setup audio, buttons, and neopixels
