@@ -9,11 +9,11 @@ if len(__file__.split("/")[:-1]) > 1:
         import sys
         sys.path.append(str(modules_directory.absolute()))
 
+import asyncio
 import displayio
 import sys
 import supervisor
 from terminalio import FONT
-import time
 
 from adafruit_display_text.label import Label
 import adafruit_fruitjam.peripherals
@@ -57,23 +57,48 @@ root_group.append(Label(
 ))
 
 # mouse control
-while True:
-    if (mouse := adafruit_usb_host_mouse.find_and_init_boot_mouse("bitmaps/cursor.bmp")) is not None:
-        mouse.tilegrid.x = display.width // 2
-        mouse.tilegrid.y = display.height // 2
-        root_group.append(mouse.tilegrid)
+async def mouse_task() -> None:
+    while True:
+        if (mouse := adafruit_usb_host_mouse.find_and_init_boot_mouse("bitmaps/cursor.bmp")) is not None:
+            mouse.tilegrid.x = display.width // 2
+            mouse.tilegrid.y = display.height // 2
+            root_group.append(mouse.tilegrid)
 
-        timeouts = 0
-        previous_pressed_btns = []
-        while timeouts < 9999:
-            pressed_btns = mouse.update()
-            if pressed_btns is None:
-                timeouts += 1
-            else:
-                timeouts = 0
-                if "left" in pressed_btns and (previous_pressed_btns is None or "left" not in previous_pressed_btns):
-                    pass
-            previous_pressed_btns = pressed_btns
-            time.sleep(1/30)
-        root_group.remove(mouse.tilegrid)
-    time.sleep(1)
+            timeouts = 0
+            previous_pressed_btns = []
+            while timeouts < 9999:
+                pressed_btns = mouse.update()
+                if pressed_btns is None:
+                    timeouts += 1
+                else:
+                    timeouts = 0
+                    if "left" in pressed_btns and (previous_pressed_btns is None or "left" not in previous_pressed_btns):
+                        pass
+                previous_pressed_btns = pressed_btns
+                await asyncio.sleep(1/30)
+            root_group.remove(mouse.tilegrid)
+        await asyncio.sleep(1)
+
+async def keyboard_task() -> None:
+    # flush input buffer
+    while supervisor.runtime.serial_bytes_available:
+        sys.stdin.read(1)
+
+    while True:
+        while (c := supervisor.runtime.serial_bytes_available) > 0:
+            key = sys.stdin.read(c)
+            if key == "\x1b":  # escape
+                supervisor.reload()
+        await asyncio.sleep(1/30)
+
+async def main() -> None:
+    await asyncio.gather(
+        mouse_task,
+        keyboard_task,
+    )
+
+try:
+    asyncio.run(main())
+except KeyboardInterrupt:
+    # TODO: Deinit
+    pass
