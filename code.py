@@ -35,7 +35,9 @@ except ValueError:  # invalid user config or no user config provided
 display = supervisor.runtime.display
 
 # setup audio, buttons, and neopixels
-peripherals = adafruit_fruitjam.peripherals.Peripherals()
+peripherals = adafruit_fruitjam.peripherals.Peripherals(
+    safe_volume_limit=(config.audio_volume_override_danger if config is not None else 12),
+)
 
 # user-defined audio output and volume
 if config is not None:
