@@ -90,6 +90,7 @@ async def keyboard_task() -> None:
         while (c := supervisor.runtime.serial_bytes_available) > 0:
             key = sys.stdin.read(c)
             if key == "\x1b":  # escape
+                peripherals.deinit()
                 supervisor.reload()
         await asyncio.sleep(1/30)
 
@@ -102,5 +103,4 @@ async def main() -> None:
 try:
     asyncio.run(main())
 except KeyboardInterrupt:
-    # TODO: Deinit
-    pass
+    peripherals.deinit()
