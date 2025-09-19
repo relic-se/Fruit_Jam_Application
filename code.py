@@ -62,8 +62,8 @@ root_group.append(Label(
 async def mouse_task() -> None:
     while True:
         if (mouse := adafruit_usb_host_mouse.find_and_init_boot_mouse("bitmaps/cursor.bmp")) is not None:
-            mouse.tilegrid.x = display.width // 2
-            mouse.tilegrid.y = display.height // 2
+            mouse.x = display.width // 2
+            mouse.y = display.height // 2
             root_group.append(mouse.tilegrid)
 
             timeouts = 0
