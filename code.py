@@ -41,7 +41,7 @@ display = supervisor.runtime.display
 
 # setup audio, buttons, and neopixels
 peripherals = adafruit_fruitjam.peripherals.Peripherals(
-    safe_volume_limit=(config.audio_volume_override_danger if config is not None else 12),
+    safe_volume_limit=(config.audio_volume_override_danger if config is not None else 0.75),
 )
 
 # user-defined audio output and volume
@@ -50,7 +50,7 @@ if config is not None:
     peripherals.volume = config.audio_volume
 else:
     peripherals.audio_output = "headphone"
-    peripherals.volume = 12
+    peripherals.volume = 0.7
 
 # create root group
 root_group = displayio.Group()
