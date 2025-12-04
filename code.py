@@ -41,16 +41,12 @@ display = supervisor.runtime.display
 
 # setup audio, buttons, and neopixels
 peripherals = adafruit_fruitjam.peripherals.Peripherals(
-    safe_volume_limit=(config.audio_volume_override_danger if config is not None else 12),
+    safe_volume_limit=(config.audio_volume_override_danger if config is not None else 0.75),
 )
 
 # user-defined audio output and volume
-if config is not None:
-    peripherals.audio_output = config.audio_output
-    peripherals.volume = config.audio_volume
-else:
-    peripherals.audio_output = "headphone"
-    peripherals.volume = 12
+peripherals.audio_output = config.audio_output if config is not None else "headphone"
+peripherals.volume = config.audio_volume if config is not None else 0.7
 
 # create root group
 root_group = displayio.Group()
@@ -59,7 +55,7 @@ display.root_group = root_group
 # example text
 root_group.append(Label(
     font=FONT, text="Hello, World!",
-    anchor_point=(.5, .5),
+    anchor_point=(0.5, 0.5),
     anchored_position=(display.width//2, display.height//2),
 ))
 
