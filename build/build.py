@@ -15,18 +15,16 @@ import zipfile
 import requests
 from circup.commands import main as circup_cli
 
-# TODO: Append additional asset directories here
-ASSET_DIRS = (
-    "bitmaps",
-)
+# TODO: Append asset directories here
+ASSET_DIRS = []
 
 # TODO: Append additional source files here
-SRC_FILES = (
+SRC_FILES = [
     "boot.py",
     "code.py",
     "icon.bmp",
     "metadata.json"
-)
+]
 
 def run(cmd):
     result = subprocess.run(cmd, shell=True, check=True, capture_output=True)

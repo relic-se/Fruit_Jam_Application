@@ -14,7 +14,7 @@ if len(__file__.split("/")[:-1]) > 1:
         import sys
         sys.path.append(lib_path)
 
-import asyncio
+import atexit
 import displayio
 import sys
 import supervisor
@@ -22,7 +22,7 @@ from terminalio import FONT
 
 from adafruit_display_text.label import Label
 import adafruit_fruitjam.peripherals
-import adafruit_usb_host_mouse
+from adafruit_usb_host_mouse import find_and_init_boot_mouse
 
 # get Fruit Jam OS config if available
 try:
@@ -59,49 +59,36 @@ root_group.append(Label(
     anchored_position=(display.width//2, display.height//2),
 ))
 
-# mouse control
-async def mouse_task() -> None:
+# mouse device
+mouse = None
+if config is not None and config.use_mouse and (mouse := find_and_init_boot_mouse()) is not None:
+    root_group.append(mouse.tilegrid)
+
+def atexit_callback() -> None:
+    if mouse and mouse.was_attached and not mouse.device.is_kernel_driver_active(0):
+        mouse.device.attach_kernel_driver(0)
+atexit.register(atexit_callback)
+
+# flush input buffer
+while supervisor.runtime.serial_bytes_available:
+    sys.stdin.read(1)
+
+try:
+    previous_pressed_btns = None
     while True:
-        if (mouse := adafruit_usb_host_mouse.find_and_init_boot_mouse("bitmaps/cursor.bmp")) is not None:
-            mouse.x = display.width // 2
-            mouse.y = display.height // 2
-            root_group.append(mouse.tilegrid)
 
-            timeouts = 0
-            previous_pressed_btns = []
-            while timeouts < 9999:
-                pressed_btns = mouse.update()
-                if pressed_btns is None:
-                    timeouts += 1
-                else:
-                    timeouts = 0
-                    if "left" in pressed_btns and (previous_pressed_btns is None or "left" not in previous_pressed_btns):
-                        pass
-                previous_pressed_btns = pressed_btns
-                await asyncio.sleep(1/30)
-            root_group.remove(mouse.tilegrid)
-        await asyncio.sleep(1)
-
-async def keyboard_task() -> None:
-    # flush input buffer
-    while supervisor.runtime.serial_bytes_available:
-        sys.stdin.read(1)
-
-    while True:
-        while (c := supervisor.runtime.serial_bytes_available) > 0:
-            key = sys.stdin.read(c)
+        # keyboard input
+        if (available := supervisor.runtime.serial_bytes_available) > 0:
+            key = sys.stdin.read(available)
             if key == "\x1b":  # escape
                 peripherals.deinit()
                 supervisor.reload()
-        await asyncio.sleep(1/30)
+        
+        # mouse input
+        if mouse is not None and mouse.update() is not None:
+            if "left" in mouse.pressed_btns and (previous_pressed_btns is None or "left" not in previous_pressed_btns):
+                pass  # left click
+            previous_pressed_btns = mouse.pressed_btns
 
-async def main() -> None:
-    await asyncio.gather(
-        asyncio.create_task(mouse_task()),
-        asyncio.create_task(keyboard_task()),
-    )
-
-try:
-    asyncio.run(main())
 except KeyboardInterrupt:
     peripherals.deinit()
