@@ -32,7 +32,6 @@ except ImportError:
     config = None
 
 # setup display
-displayio.release_displays()
 try:
     adafruit_fruitjam.peripherals.request_display_config()  # user display configuration
 except ValueError:  # invalid user config or no user config provided
