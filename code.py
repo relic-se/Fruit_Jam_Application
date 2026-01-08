@@ -83,6 +83,8 @@ def key_unshift(buffer: str) -> tuple:
         return None, buffer
     if key == "\x1b" and buffer and buffer[0] == "[":
         key, buffer = str_unshift(buffer, key, 2)
+        if buffer and buffer[0] == "~":
+            key, buffer = str_unshift(buffer, key)
     return key, buffer
 
 try:
