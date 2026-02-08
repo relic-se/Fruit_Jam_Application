@@ -77,11 +77,19 @@ try:
     while True:
 
         # keyboard input
+        keys = []
         if (available := supervisor.runtime.serial_bytes_available) > 0:
-            key = sys.stdin.read(available)
-            if key == "\x1b":  # escape
-                peripherals.deinit()
-                supervisor.reload()
+            buffer = sys.stdin.read(available)
+            while buffer:
+                key = buffer[0]
+                buffer = buffer[1:]
+                if key == "\x1b" and buffer and buffer[0] == "[" and len(buffer) >= 2:
+                    key += buffer[:2]
+                    buffer = buffer[2:]
+                    if buffer and buffer[0] == "~":
+                        key += buffer[0]
+                        buffer = buffer[1:]
+                keys.append(key.upper())
         
         # mouse input
         if mouse is not None and mouse.update() is not None:
