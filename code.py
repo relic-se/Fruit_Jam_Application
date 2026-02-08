@@ -72,35 +72,24 @@ atexit.register(atexit_callback)
 while supervisor.runtime.serial_bytes_available:
     sys.stdin.read(1)
 
-def str_unshift(value: str, data: str = "", count: int = 1) -> tuple:
-    if len(value) < count:
-        return None, value
-    return data + value[:count], value[count:]
-
-def key_unshift(buffer: str) -> tuple:
-    key, buffer = str_unshift(buffer)
-    if key is None:
-        return None, buffer
-    if key == "\x1b" and buffer and buffer[0] == "[":
-        key, buffer = str_unshift(buffer, key, 2)
-        if buffer and buffer[0] == "~":
-            key, buffer = str_unshift(buffer, key)
-    return key, buffer
-
 try:
     previous_pressed_btns = None
     while True:
 
         # keyboard input
+        keys = []
         if (available := supervisor.runtime.serial_bytes_available) > 0:
             buffer = sys.stdin.read(available)
-            while True:
-                key, buffer = key_unshift(buffer)
-                if key is None:
-                    break
-                elif key == "\x1b":  # escape
-                    peripherals.deinit()
-                    supervisor.reload()
+            while buffer:
+                key = buffer[0]
+                buffer = buffer[1:]
+                if key == "\x1b" and buffer and buffer[0] == "[" and len(buffer) >= 2:
+                    key += buffer[:2]
+                    buffer = buffer[2:]
+                    if buffer and buffer[0] == "~":
+                        key += buffer[0]
+                        buffer = buffer[1:]
+                keys.append(key.upper())
         
         # mouse input
         if mouse is not None and mouse.update() is not None:
