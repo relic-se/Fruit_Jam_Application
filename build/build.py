@@ -111,7 +111,8 @@ def main():
 
             # copy asset contents
             for asset_dir in asset_dirs:
-                shutil.copytree(asset_dir, bundle_dir / asset_dir.name, dirs_exist_ok=True)
+                relpath = str(asset_dir)[len(str(root_dir))+1:]
+                shutil.copytree(asset_dir, bundle_dir / relpath, dirs_exist_ok=True)
 
             # copy src files
             for src_file in SRC_FILES:
