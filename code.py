@@ -123,7 +123,7 @@ if BLINKA:
 
     def handle_event(event) -> None:
         if event.type == pygame.KEYDOWN:
-            handle_key(event.unicode)
+            handle_key(event.unicode.upper())
 
         elif event.type == pygame.MOUSEMOTION:
             mouse_tg.x = event.pos[0] // DISPLAY_SCALE
@@ -192,7 +192,7 @@ else:
                         if buffer and buffer[0] == "~":
                             key += buffer[0]
                             buffer = buffer[1:]
-                    handle_key(key)
+                    handle_key(key.upper())
             
             # mouse input
             if mouse is not None and mouse.update() is not None:
