@@ -1,0 +1,7 @@
+adafruit-blinka
+adafruit-blinka-displayio
+adafruit-circuitpython-display-text
+adafruit-circuitpython-imageload
+adafruit-circuitpython-usb-host-mouse
+blinka-displayio-pygamedisplay
+circuitpython-usb-host-gamepad
